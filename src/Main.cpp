@@ -14,9 +14,9 @@ bool signedNb = true;
 struct Memory {
 
     std::array<std::string, SizeProg> prog;
+    int decProg[255];
 
     void init() {
-        decodeProg();
         prog = getProg(); //prog
         //replace all unused space by "00000000"
         for(int i = 0; i != prog.size(); i++) {
@@ -24,19 +24,33 @@ struct Memory {
                 prog.at(i) = "00000000";
             }
         }
+        decodeProg(); //set same prog but in decimal
+    }
+    void decodeProg() {
+        for(int i = 0; i != SizeProg; i++) {
+            if(!prog[i].empty()) {
+                decProg[i] = std::stoi(prog[i], nullptr, 2);
+                /*
+                if(signedNb && prog[i].at(0) == '1') {
+                    decProg[i] = decProg[i] * -1;
+                }
+                std::cout << "decoded prog: " << decProg[i] << std::endl;
+                */
+            }
+        }
     }
 
     int getMode(uint8_t tick) {
-        int copyMode = 0;
+        int computerMode = 0;
         if(prog[tick].at(0) == '1') {
-            std::cout << "copy" << std::endl;
-            copyMode+=128;
+            computerMode+=128;
         }
         if(prog[tick].at(1) == '1') {
-            copyMode+=64;
+            computerMode+=64;
         }
-        return copyMode;
+        return computerMode;
     }
+
 
     int getRegIdOutputCopy(uint8_t tick) {
         int regout = 0;
@@ -89,7 +103,11 @@ struct cpu {
         A.SByte = C.SByte = D.SByte = R.SByte = F.SByte = X.SByte = 0;
         A.UByte = C.UByte = D.UByte = R.UByte = F.UByte = X.UByte = 0;
         static_cast<uint>(NV = 0);
+
+        OUT.SByte = OUT.SByte = 0;
+        IN.UByte = IN.UByte = 0;
     }
+
 
     /*
     *set lasteBits = 1 if you try to convert getRegIdOutputCopy
@@ -118,20 +136,27 @@ struct cpu {
         }
     }
 
+    void immediate(uint8_t nb) {
+        A.UByte = A.SByte = nb;
+    }
+
     void copy(Byte &enter, Byte &exit) {
         exit = enter;
     }
+
 
     //for the moment the value is print as usigned. not permanent.
     void info() { 
         std::cout << "tick: "<< static_cast<uint>(NV) << std::endl;
         std::cout << "----" << std::endl;
+        std::cout << "IN: " << static_cast<uint>(IN.UByte) << std::endl;
         std::cout << "reg A: " << static_cast<uint>(A.UByte) << std::endl;
         std::cout << "reg C: " << static_cast<uint>(C.UByte) << std::endl;
         std::cout << "reg D: " << static_cast<uint>(D.UByte) << std::endl;
         std::cout << "reg R: " << static_cast<uint>(R.UByte) << std::endl;
         std::cout << "reg F: " << static_cast<uint>(F.UByte) << std::endl;
         std::cout << "reg X: " << static_cast<uint>(X.UByte) << std::endl;
+        std::cout << "OUT: " << static_cast<uint>(OUT.UByte) << std::endl;
         std::cout << "----" << std::endl;
     }
 
@@ -149,15 +174,17 @@ int main() {
     cpu.init();
     mem.init();
 
-    while (static_cast<uint>(cpu.NV) < mem.prog.size()) {
+    while (static_cast<uint>(cpu.NV) < mem.prog.size()) { 
         switch (mem.getMode(static_cast<uint>(cpu.NV))) {
         case 0:
-            //immediate();
+            std::cout << "immediate" << std::endl;
+            cpu.immediate(mem.decProg[static_cast<uint>(cpu.NV)]);
             break;
         case 64:
             //alu();
             break;
         case 128:
+            std::cout << "copy" << std::endl;
             cpu.copy(cpu.getRegisterById(mem.getRegIdInputCopy(static_cast<uint>(cpu.NV)), false), cpu.getRegisterById(mem.getRegIdOutputCopy(static_cast<uint>(cpu.NV)), true));
             break;
         case 192:
@@ -170,6 +197,5 @@ int main() {
         cpu.info();
         cpu.incNV();
     }
-    cpu.info();
     return 0;
 }
