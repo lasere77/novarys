@@ -52,6 +52,11 @@ The first 3 bits define the conditions to be performed
 <img src="README IMG/condition.png">
 
 ---
+## precision
+you will find in the Main.cpp file a signedNb variable if it is set to true then the numbers will be displayed as signed numbers and vice versa,
+but it is important to note that even if this variable is set to false the numbers will still be treated as signed so if a number is > = 128
+(unsigned signedNb = false) it will be counted as negative in the condition mode.
+
 #### Binary register names
 
 to activate register A we set the value of the three bits to 0  
