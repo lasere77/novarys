@@ -30,12 +30,10 @@ struct Memory {
         for(int i = 0; i != SizeProg; i++) {
             if(!prog[i].empty()) {
                 decProg[i] = std::stoi(prog[i], nullptr, 2);
-                /*
                 if(signedNb && prog[i].at(0) == '1') {
                     decProg[i] = decProg[i] * -1;
                 }
                 std::cout << "decoded prog: " << decProg[i] << std::endl;
-                */
             }
         }
     }
@@ -80,6 +78,22 @@ struct Memory {
         }
         std::cout << "regin: " << regin << std::endl;
         return regin;
+    }
+
+
+    int getConditionId(uint8_t tick) {
+        int conditonID = 0;
+        if(prog[tick].at(5) == '1') {
+            conditonID+=4;
+        }
+        if(prog[tick].at(6) == '1') {
+            conditonID+=2;
+        }
+        if(prog[tick].at(7) == '1') {
+            conditonID++;
+        }
+        std::cout << "conditonID: " << conditonID << std::endl;
+        return conditonID;
     } 
 };
 
@@ -136,6 +150,51 @@ struct cpu {
         }
     }
 
+
+    /*
+    * it remains to check: 010 (<0) && 011 (=<0)
+    */
+    bool condition(int condition, int nb) {
+        switch (condition) {
+        case 0: //never
+            return false;
+            break;
+        case 1: // nb = 0
+            if(nb == 0)
+                return true;
+        case 2: // nb < 0
+            if(nb < 0)
+                return true;
+            break;
+        case 3: // <=0
+            if(nb <= 0)
+                return true;
+            break;
+        case 4: // always
+            return true;
+            break;
+        case 5: // !=0
+            if(nb != 0)
+                return true;
+            break;
+        case 6: // >=0
+            if(nb >= 0)
+                return true;
+            break;
+        case 7: // >0
+            if(nb > 0)
+                return true;
+            break;
+        default:
+            break;
+        }
+        return false;
+    }
+
+    void conditionnalJump() {
+        NV = A.UByte;
+    }
+
     void immediate(uint8_t nb) {
         A.UByte = A.SByte = nb;
     }
@@ -149,14 +208,25 @@ struct cpu {
     void info() { 
         std::cout << "tick: "<< static_cast<uint>(NV) << std::endl;
         std::cout << "----" << std::endl;
-        std::cout << "IN: " << static_cast<uint>(IN.UByte) << std::endl;
-        std::cout << "reg A: " << static_cast<uint>(A.UByte) << std::endl;
-        std::cout << "reg C: " << static_cast<uint>(C.UByte) << std::endl;
-        std::cout << "reg D: " << static_cast<uint>(D.UByte) << std::endl;
-        std::cout << "reg R: " << static_cast<uint>(R.UByte) << std::endl;
-        std::cout << "reg F: " << static_cast<uint>(F.UByte) << std::endl;
-        std::cout << "reg X: " << static_cast<uint>(X.UByte) << std::endl;
-        std::cout << "OUT: " << static_cast<uint>(OUT.UByte) << std::endl;
+        if (signedNb) {
+            std::cout << "IN: " << static_cast<uint>(IN.SByte) << std::endl;
+            std::cout << "reg A: " << static_cast<uint>(A.SByte) << std::endl;
+            std::cout << "reg C: " << static_cast<uint>(C.SByte) << std::endl;
+            std::cout << "reg D: " << static_cast<uint>(D.SByte) << std::endl;
+            std::cout << "reg R: " << static_cast<uint>(R.SByte) << std::endl;
+            std::cout << "reg F: " << static_cast<uint>(F.SByte) << std::endl;
+            std::cout << "reg X: " << static_cast<uint>(X.SByte) << std::endl;
+            std::cout << "OUT: " << static_cast<uint>(OUT.SByte) << std::endl;
+        }else {
+            std::cout << "IN: " << static_cast<uint>(IN.UByte) << std::endl;
+            std::cout << "reg A: " << static_cast<uint>(A.UByte) << std::endl;
+            std::cout << "reg C: " << static_cast<uint>(C.UByte) << std::endl;
+            std::cout << "reg D: " << static_cast<uint>(D.UByte) << std::endl;
+            std::cout << "reg R: " << static_cast<uint>(R.UByte) << std::endl;
+            std::cout << "reg F: " << static_cast<uint>(F.UByte) << std::endl;
+            std::cout << "reg X: " << static_cast<uint>(X.UByte) << std::endl;
+            std::cout << "OUT: " << static_cast<uint>(OUT.UByte) << std::endl;   
+        }
         std::cout << "----" << std::endl;
     }
 
@@ -188,7 +258,9 @@ int main() {
             cpu.copy(cpu.getRegisterById(mem.getRegIdInputCopy(static_cast<uint>(cpu.NV)), false), cpu.getRegisterById(mem.getRegIdOutputCopy(static_cast<uint>(cpu.NV)), true));
             break;
         case 192:
-            //condition();
+            std::cout << "condition" << std::endl;
+            if(cpu.condition(mem.getConditionId(static_cast<uint>(cpu.NV)), cpu.R.SByte))
+                cpu.conditionnalJump();
             break;
         default:
             std::cout << "hmmm that shouldn't have happened..." << std::endl;
