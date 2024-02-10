@@ -11,6 +11,9 @@ union Byte {
 
 const bool signedNb = true;
 
+//this variable is used to hide the moment when there is a conditional jump and the info has not changed, because no action has been taken.
+bool displayInfo = true; 
+
 struct Memory {
 
     std::array<std::string, SizeProg> prog;
@@ -124,8 +127,8 @@ struct cpu {
     Byte X; //regiter (register 5) ID=5
 
     //there have the same ID but is not at the same possition on binary
-    Byte IN; // input of compuiter ID = 6
-    Byte OUT; //output of computer ID= 6
+    Byte IN; // input of compuiter ID=6
+    Byte OUT; //output of computer ID=6
 
     void init() {
         A.SByte = C.SByte = D.SByte = R.SByte = F.SByte = X.SByte = 0;
@@ -134,6 +137,10 @@ struct cpu {
 
         OUT.SByte = OUT.SByte = 0;
         IN.UByte = IN.UByte = 0;
+    }
+
+    void resetOutput() {
+        OUT.SByte = OUT.UByte = 0;
     }
 
 
@@ -202,9 +209,6 @@ struct cpu {
         }
     }
 
-    /*
-    * it remains to check: 010 (<0) && 011 (=<0)
-    */
     bool condition(int condition, int nb) {
         switch (condition) {
         case 0: //never
@@ -246,7 +250,8 @@ struct cpu {
 
     void conditionnalJump() {
         std::cout << "Yes" << std::endl;
-        NV = A.UByte;
+        NV = A.UByte - 1; //A.UByte - 1 to execute A.UByte on the while loop
+        displayInfo = false;
     }
 
     void immediate(uint8_t nb) {
@@ -258,30 +263,33 @@ struct cpu {
     }
 
 
-    //for the moment the value is print as usigned. not permanent.
-    void info() { 
-        std::cout << "tick: "<< static_cast<uint>(NV) << std::endl;
-        std::cout << "----" << std::endl;
-        if (signedNb) {
-            std::cout << "IN: " << static_cast<int>(IN.SByte) << std::endl;
-            std::cout << "reg A: " << static_cast<int>(A.SByte) << std::endl;
-            std::cout << "reg C: " << static_cast<int>(C.SByte) << std::endl;
-            std::cout << "reg D: " << static_cast<int>(D.SByte) << std::endl;
-            std::cout << "reg R: " << static_cast<int>(R.SByte) << std::endl;
-            std::cout << "reg F: " << static_cast<int>(F.SByte) << std::endl;
-            std::cout << "reg X: " << static_cast<int>(X.SByte) << std::endl;
-            std::cout << "OUT: " << static_cast<int>(OUT.SByte) << std::endl;
-        }else {
-            std::cout << "IN: " << static_cast<uint>(IN.UByte) << std::endl;
-            std::cout << "reg A: " << static_cast<uint>(A.UByte) << std::endl;
-            std::cout << "reg C: " << static_cast<uint>(C.UByte) << std::endl;
-            std::cout << "reg D: " << static_cast<uint>(D.UByte) << std::endl;
-            std::cout << "reg R: " << static_cast<uint>(R.UByte) << std::endl;
-            std::cout << "reg F: " << static_cast<uint>(F.UByte) << std::endl;
-            std::cout << "reg X: " << static_cast<uint>(X.UByte) << std::endl;
-            std::cout << "OUT: " << static_cast<uint>(OUT.UByte) << std::endl;   
+    void info() {
+        //This condition solves the A.UByte -1 problem caused by the conditionnalJump function.
+        if(displayInfo) {
+            std::cout << "tick: "<< static_cast<uint>(NV) << std::endl;
+            std::cout << "----" << std::endl;
+            if (signedNb) {
+                std::cout << "IN: " << static_cast<int>(IN.SByte) << std::endl;
+                std::cout << "reg A: " << static_cast<int>(A.SByte) << std::endl;
+                std::cout << "reg C: " << static_cast<int>(C.SByte) << std::endl;
+                std::cout << "reg D: " << static_cast<int>(D.SByte) << std::endl;
+                std::cout << "reg R: " << static_cast<int>(R.SByte) << std::endl;
+                std::cout << "reg F: " << static_cast<int>(F.SByte) << std::endl;
+                std::cout << "reg X: " << static_cast<int>(X.SByte) << std::endl;
+                std::cout << "OUT: " << static_cast<int>(OUT.SByte) << std::endl;
+            }else {
+                std::cout << "IN: " << static_cast<uint>(IN.UByte) << std::endl;
+                std::cout << "reg A: " << static_cast<uint>(A.UByte) << std::endl;
+                std::cout << "reg C: " << static_cast<uint>(C.UByte) << std::endl;
+                std::cout << "reg D: " << static_cast<uint>(D.UByte) << std::endl;
+                std::cout << "reg R: " << static_cast<uint>(R.UByte) << std::endl;
+                std::cout << "reg F: " << static_cast<uint>(F.UByte) << std::endl;
+                std::cout << "reg X: " << static_cast<uint>(X.UByte) << std::endl;
+                std::cout << "OUT: " << static_cast<uint>(OUT.UByte) << std::endl;   
+            }
+            std::cout << "----" << std::endl;
         }
-        std::cout << "----" << std::endl;
+        displayInfo = true;
     }
 
     void incNV() {
@@ -290,10 +298,10 @@ struct cpu {
 };
 
 /*
-*BUG = the conditional jump does not execute the instruction on which it jumps
+*"BUG" = 
 */
 int main() {
-    std::cout << "test of emulat novarys" << std::endl;
+    std::cout << "launch the computer..." << std::endl;
     
     cpu cpu;
     Memory mem;
@@ -301,7 +309,8 @@ int main() {
     cpu.init();
     mem.init();
 
-    while (static_cast<uint>(cpu.NV) < mem.prog.size()) { 
+    while (static_cast<uint>(cpu.NV) < mem.prog.size()) {
+        std::cout << std::endl; 
         switch (mem.getMode(static_cast<uint>(cpu.NV))) {
         case 0:
             std::cout << "immediate" << std::endl;
@@ -326,6 +335,7 @@ int main() {
         }
         cpu.info();
         cpu.incNV();
+        cpu.resetOutput();
     }
     return 0;
 }
