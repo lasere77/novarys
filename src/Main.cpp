@@ -9,7 +9,7 @@ union Byte {
     uint8_t UByte;
 };
 
-bool signedNb = true;
+const bool signedNb = true;
 
 struct Memory {
 
@@ -33,7 +33,7 @@ struct Memory {
                 if(signedNb && prog[i].at(0) == '1') {
                     decProg[i] = decProg[i] * -1;
                 }
-                std::cout << "decoded prog: " << decProg[i] << std::endl;
+                //std::cout << "decoded prog: " << decProg[i] << std::endl;
             }
         }
     }
@@ -95,6 +95,20 @@ struct Memory {
         std::cout << "conditonID: " << conditonID << std::endl;
         return conditonID;
     } 
+
+    int getAluId(uint8_t tick) {
+        int getAluId = 0;
+        if(prog[tick].at(5) == '1') {
+            getAluId+=4;
+        }
+        if(prog[tick].at(6) == '1') {
+            getAluId+=2;
+        }
+        if(prog[tick].at(7) == '1') {
+            getAluId++;
+        }
+        return getAluId;
+    }
 };
 
 
@@ -150,6 +164,43 @@ struct cpu {
         }
     }
 
+    void alu(uint mode) {
+        switch (mode) {
+        case 0: // OR
+            std::cout << "or" << std::endl;
+            R.SByte = (C.SByte | D.SByte);
+            R.UByte = (C.UByte | D.UByte); 
+            break;
+        case 1: // NAND
+            std::cout << "nand" << std::endl;
+            R.SByte = ~(C.SByte & D.SByte);
+            R.UByte = ~(C.UByte & D.UByte); 
+            break;
+        case 2: // NOR
+            std::cout << "nor" << std::endl;
+            R.SByte = ~(C.SByte | D.SByte);
+            R.UByte = ~(C.UByte | D.UByte); 
+            break;
+        case 3: // AND
+            std::cout << "and" << std::endl;
+            R.SByte = (C.SByte & D.SByte);
+            R.UByte = (C.UByte & D.UByte); 
+            break;
+        case 4: // ADD
+            std::cout << "add" << std::endl;
+            R.SByte = C.SByte + D.SByte;
+            R.UByte = C.UByte + D.UByte;
+            break;
+        case 5: // SUB
+            std::cout << "sub" << std::endl;
+            R.SByte = C.SByte - D.SByte;
+            R.UByte = C.UByte - D.UByte;
+            break;
+        default:
+            std::cout << "hmmm that shouldn't have happened.../{alu}}" << std::endl;
+            break;
+        }
+    }
 
     /*
     * it remains to check: 010 (<0) && 011 (=<0)
@@ -186,12 +237,15 @@ struct cpu {
                 return true;
             break;
         default:
+            std::cout << "hmmm that shouldn't have happened.../{condition}" << std::endl;
             break;
         }
+        std::cout << "No" << std::endl;
         return false;
     }
 
     void conditionnalJump() {
+        std::cout << "Yes" << std::endl;
         NV = A.UByte;
     }
 
@@ -209,14 +263,14 @@ struct cpu {
         std::cout << "tick: "<< static_cast<uint>(NV) << std::endl;
         std::cout << "----" << std::endl;
         if (signedNb) {
-            std::cout << "IN: " << static_cast<uint>(IN.SByte) << std::endl;
-            std::cout << "reg A: " << static_cast<uint>(A.SByte) << std::endl;
-            std::cout << "reg C: " << static_cast<uint>(C.SByte) << std::endl;
-            std::cout << "reg D: " << static_cast<uint>(D.SByte) << std::endl;
-            std::cout << "reg R: " << static_cast<uint>(R.SByte) << std::endl;
-            std::cout << "reg F: " << static_cast<uint>(F.SByte) << std::endl;
-            std::cout << "reg X: " << static_cast<uint>(X.SByte) << std::endl;
-            std::cout << "OUT: " << static_cast<uint>(OUT.SByte) << std::endl;
+            std::cout << "IN: " << static_cast<int>(IN.SByte) << std::endl;
+            std::cout << "reg A: " << static_cast<int>(A.SByte) << std::endl;
+            std::cout << "reg C: " << static_cast<int>(C.SByte) << std::endl;
+            std::cout << "reg D: " << static_cast<int>(D.SByte) << std::endl;
+            std::cout << "reg R: " << static_cast<int>(R.SByte) << std::endl;
+            std::cout << "reg F: " << static_cast<int>(F.SByte) << std::endl;
+            std::cout << "reg X: " << static_cast<int>(X.SByte) << std::endl;
+            std::cout << "OUT: " << static_cast<int>(OUT.SByte) << std::endl;
         }else {
             std::cout << "IN: " << static_cast<uint>(IN.UByte) << std::endl;
             std::cout << "reg A: " << static_cast<uint>(A.UByte) << std::endl;
@@ -235,6 +289,9 @@ struct cpu {
     }
 };
 
+/*
+*BUG = the conditional jump does not execute the instruction on which it jumps
+*/
 int main() {
     std::cout << "test of emulat novarys" << std::endl;
     
@@ -251,7 +308,8 @@ int main() {
             cpu.immediate(mem.decProg[static_cast<uint>(cpu.NV)]);
             break;
         case 64:
-            //alu();
+            std::cout << "alu" << std::endl;
+            cpu.alu(mem.getAluId(static_cast<uint>(cpu.NV)));
             break;
         case 128:
             std::cout << "copy" << std::endl;
@@ -263,9 +321,9 @@ int main() {
                 cpu.conditionnalJump();
             break;
         default:
-            std::cout << "hmmm that shouldn't have happened..." << std::endl;
+            std::cout << "hmmm that shouldn't have happened.../{main}" << std::endl;
             break;
-        } 
+        }
         cpu.info();
         cpu.incNV();
     }

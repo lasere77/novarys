@@ -56,6 +56,10 @@ The first 3 bits define the conditions to be performed
 you will find in the Main.cpp file a signedNb variable if it is set to true then the numbers will be displayed as signed numbers and vice versa,
 but it is important to note that even if this variable is set to false the numbers will still be treated as signed so if a number is > = 128
 (unsigned signedNb = false) it will be counted as negative in the condition mode.
+furthermore, if an addition is performed and the result is greater than or equal to 128, 
+then the number will become a negative number corresponding to the binary of the result (only if signedNb = true)
+and if you perform a subtraction and the result is negative, but (signedNb = false),
+then the result will be the positive binary corresponding to the initial result.
 
 #### Binary register names
 
