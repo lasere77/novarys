@@ -19,8 +19,8 @@ struct Memory {
     std::array<std::string, SizeProg> prog;
     int decProg[255];
 
-    void init() {
-        prog = getProg(); //prog
+    void init(char *argv[]) {
+        prog = getProg(argv); //prog
         //replace all unused space by "00000000"
         for(int i = 0; i != prog.size(); i++) {
             if(prog.at(i).empty()) {
@@ -297,17 +297,14 @@ struct cpu {
     }
 };
 
-/*
-*"BUG" = 
-*/
-int main() {
+int main(int argc, char *argv[]) {
     std::cout << "launch the computer..." << std::endl;
     
     cpu cpu;
     Memory mem;
 
     cpu.init();
-    mem.init();
+    mem.init(argv);
 
     while (static_cast<uint>(cpu.NV) < mem.prog.size()) {
         std::cout << std::endl; 

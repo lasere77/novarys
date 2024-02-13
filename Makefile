@@ -11,7 +11,7 @@ compileObject: Main.o
 	$(CXX) *.o -o bin/$(EXEC)
 
 run: bin/$(EXEC)
-	./bin/$(EXEC)
+	./bin/$(EXEC) binary.nova
 
 clean:
 	rm *.o
