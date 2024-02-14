@@ -17,11 +17,13 @@ void readProgFromFile(char *argv[]) {
             //remove binary error
             for (char c : s) {
                 if (c != '0' && c != '1' || s.size() != 8) {
+                    std::cout << "warn: invalid instruction -> " << s << std::endl;
                     s = "00000000";
+                    break;
                 }
             }
             prog[i] = s;
-            //std::cout << s << " i: " << i << std::endl;
+            std::cout << s << " i: " << i << std::endl;
         }
     }
     file.close();

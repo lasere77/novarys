@@ -1,5 +1,5 @@
 CXX = g++
-EXEC = main.exe
+EXEC = novarys.exe
 
 build: compileSource compileObject
 start: compileSource compileObject run clean

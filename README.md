@@ -51,6 +51,11 @@ The first 3 bits define the conditions to be performed
 
 <img src="README IMG/condition.png">
 
+
+### How to write/load the program in Novarys?  
+Simply write the program in a text file and pass the file path as an argument to Novarys (./novarys.exe filePath). 
+Please note that each instruction in the program must be separated by a space, a tab or a line feed. Please see the example (binary.nova).
+
 ---
 ## precision
 you will find in the Main.cpp file a signedNb variable if it is set to true then the numbers will be displayed as signed numbers and vice versa,
