@@ -11,11 +11,12 @@ fn main() {
         let opcode: u8 = instruction & 0b11000000;
         match opcode {
             0 => cpu.im(*instruction),
-            64 => todo!(),
+            64 => cpu.alu(*instruction),
             128 => todo!(),
             192 => todo!(),
             _ => panic!(),
         }
+        cpu.info();
         cpu.nv += 1;
     }
 }
