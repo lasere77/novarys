@@ -1,26 +1,21 @@
-use std::io::Read;
+mod cpu;
+mod rom;
 
-const ROM_SIZE: usize = 255;
-const NOP_OPCODE: u8 = 192;
+fn main() {
+    let rom: [u8; rom::ROM_SIZE] = rom::get_rom();
+    let mut cpu = cpu::Cpu::init();
 
-fn  get_rom() -> [u8; 255]
-{
-    let file_path: String = std::env::args().nth(1).expect("Please set the path to the binary file.");
-    let file = std::fs::File::open(file_path).expect("Fail to open the file, Please check the path");
-    let mut reader = std::io::BufReader::new(file);
-    let mut rom: [u8; 255] = [NOP_OPCODE; ROM_SIZE];
-    if reader.read(&mut rom).unwrap() > ROM_SIZE
+    while usize::from(cpu.nv) != rom::ROM_SIZE
     {
-        println!("Warning: Please note that the binary file contains more data than the ROM can hold.");
-    }
-    rom
-}
-
-fn main()
-{
-    let rom: [u8; 255] = get_rom();
-    for byte in rom.iter()
-    {
-        println!("{byte}");
+        let instruction = rom.get(usize::from(cpu.nv)).unwrap();
+        let opcode: u8 = instruction & 0b11000000;
+        match opcode {
+            0 => cpu.im(*instruction),
+            64 => todo!(),
+            128 => todo!(),
+            192 => todo!(),
+            _ => panic!(),
+        }
+        cpu.nv += 1;
     }
 }
