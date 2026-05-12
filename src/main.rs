@@ -13,7 +13,7 @@ fn main() {
             0 => cpu.im(*instruction),
             64 => cpu.alu(*instruction),
             128 => cpu.copy(*instruction),
-            192 => todo!(),
+            192 => cpu.condition(*instruction),
             _ => panic!(),
         }
         cpu.info();

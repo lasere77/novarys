@@ -78,4 +78,27 @@ impl Cpu {
             self.regs[output as usize] = self.regs[input as usize];        
         }
     }
+
+    pub fn condition(&mut self, instruction: u8) {
+        println!("mode: condition");
+        let condition = instruction & 0b00000111;
+        let need_jump: bool;
+        match condition {
+            0 => need_jump = false,
+            1 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte == 0 },
+            2 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte < 0 },
+            3 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte <= 0 },
+            4 => need_jump = true,
+            5 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte != 0 },
+            6 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte >= 0 },
+            7 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte > 0 },
+            _ => todo!(),
+        }
+        if need_jump {
+            unsafe {
+                println!("jump at: {}", self.regs[RegsId::A as usize].u_byte - 1);
+                self.nv =  self.regs[RegsId::A as usize].u_byte - 1;
+            }
+        }
+    }
 }
