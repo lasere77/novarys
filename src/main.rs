@@ -12,7 +12,7 @@ fn main() {
         match opcode {
             0 => cpu.im(*instruction),
             64 => cpu.alu(*instruction),
-            128 => todo!(),
+            128 => cpu.copy(*instruction),
             192 => todo!(),
             _ => panic!(),
         }
