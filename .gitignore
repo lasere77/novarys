@@ -1,7 +1,2 @@
-/bin/*.exe
-/.vscode/
-*.o
-
-# Added by cargo
-
 /target
+TODO.md

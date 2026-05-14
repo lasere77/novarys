@@ -1,76 +1,175 @@
 # Novarys
-very simple PC emulator
+
+**Novarys** is a custom emulator written in **Rust** for the *OVERTURE* architecture from the game *Turing Complete*.
+
+The project was developed as a continuation of **Clowryys**, a custom assembler targeting the same architecture, with the goal of exploring low-level system design, binary execution, and emulator development.
+
+Novarys is capable of loading and executing binaries compatible with the OVERTURE architecture while exposing the internal machine state for debugging and experimentation.
 
 ---
-## Novarys information
-This program is a computer emulator but not a regular computer.
-in fact this program will emulate the PC that you create in the game "Turing complete"
-and it has the architecture: OVERTURE
 
-## Credits
+## Overview
 
-made by lasere77 
+Novarys was created to deepen my understanding of:
 
+- Emulator and virtual machine design
+- CPU architecture concepts
+- Binary execution workflows
+- Rust systems programming
+- Low-level debugging and state management
 
-## compile
-**the sources are compiled :**
-with gnu g++, you can use the Makefile
-it work on linux and windows
+The emulator focuses on correctness, architecture experimentation, and observability rather than raw performance.
 
----
-## how to program it?
-
-### instruction
-
-If the two highest bits are disabled, you are in immediate value mode (stores the value in register A)
-but this value can go from 0 to 63 by enabling/disabling the other bits.
-
-<img src="README IMG/immediate_value.png">
-
-If only the second bit of the most important bits (the penultimate bit) is set.
-Then you are in calculation mode C and D are the two arguments to the operations and R is the result of this operation.
-for exemple: (01000101) = (C - D) -> R
-The first 3 bits define the operation to be performed.
-
-> 000 = OR; 001 = NAND; 010 = NOR; 011 = AND; 100 = ADD; 101 = SUB
-
-<img src="README IMG/calculation.png">
-
-
-If only the first bit of the most important bits (the last) is set, then you are in copy mode.
-The first 3 bits define which register the value will be sent to and bits 4, 5 and 6 define which register will be copied.
-To select input or output, you need to set the last two bits of the input or output section.
-
-<img src="README IMG/copy.png">
-
-
-If the two most important bits (the last two bits) are set, then you are in condition mode.
-The first 3 bits define the conditions to be performed
-
-> 000 -> NERVER; 001 -> =0; 010 -> <0; 011 -> <=0; 100 -> ALWAYS; 101 -> != 0; 110 -> >=0; 111 -> >0
-
-<img src="README IMG/condition.png">
-
-
-### How to write/load the program in Novarys?  
-Simply write the program in a text file and pass the file path as an argument to Novarys (./novarys.exe filePath). 
-Please note that each instruction in the program must be separated by a space, a tab or a line feed. Please see the example (binary.nova).
+It is primarily intended to work alongside [**Clowryys**](https://github.com/lasere77/clowryys), a custom assembler for the same architecture.
 
 ---
-## precision
-you will find in the Main.cpp file a signedNb variable if it is set to true then the numbers will be displayed as signed numbers and vice versa,
-but it is important to note that even if this variable is set to false the numbers will still be treated as signed so if a number is > = 128
-(unsigned signedNb = false) it will be counted as negative in the condition mode.
-furthermore, if an addition is performed and the result is greater than or equal to 128, 
-then the number will become a negative number corresponding to the binary of the result (only if signedNb = true)
-and if you perform a subtraction and the result is negative, but (signedNb = false),
-then the result will be the positive binary corresponding to the initial result.
 
-#### Binary register names
+## Features
 
-to activate register A we set the value of the three bits to 0  
-C to 1  
-D to 2  
-R to 3  
-F to 4  
-X to 5  
+- Execution of OVERTURE-compatible binaries
+- Register state visualization at each execution tick
+- Basic instruction cycle emulation
+- Custom architecture implementation
+- Terminal-based execution environment
+- Debug-oriented execution flow
+
+---
+
+## Installation / Build
+
+### Requirements
+
+- Rust
+- Cargo
+
+No additional external dependencies are required.
+
+### Build & Run
+
+```bash
+cargo run path/to/binary/file
+```
+
+---
+
+## Usage
+
+Novarys executes binaries targeting the OVERTURE architecture.
+
+During execution, the emulator displays the internal register state at each tick, making it easier to:
+
+- Observe instruction execution
+- Debug programs
+- Understand architecture behavior
+- Inspect machine state transitions
+
+This behavior was intentionally designed to support experimentation and low-level debugging.
+
+---
+
+## Architecture Overview
+
+Novarys implements a simplified CPU emulation pipeline:
+
+1. **Binary loading**
+   - Loads compiled OVERTURE binaries into emulator memory
+
+2. **Instruction decoding**
+   - Interprets binary instructions according to the architecture specification
+
+3. **Execution cycle**
+   - Updates registers and internal machine state
+   - Executes ALU and control flow operations
+
+4. **State visualization**
+   - Displays register values and execution state in real time
+
+The emulator is intentionally designed to stay close to the underlying architecture in order to expose low-level behavior as clearly as possible.
+
+---
+
+## Design Choices
+
+### Rust implementation
+
+Rust was chosen to explore systems programming concepts while benefiting from:
+
+- Memory safety guarantees
+- Strong type safety
+- Performance-oriented abstractions
+- Explicit resource management
+
+The project also served as a practical introduction to Rust in the context of low-level tooling.
+
+### Debug-oriented execution
+
+Rather than hiding internal state, Novarys exposes register values continuously during execution.
+
+This makes the emulator particularly useful for:
+
+- Architecture experimentation
+- Understanding instruction behavior
+- Debugging assembled programs
+- Educational exploration
+
+### Architecture continuity
+
+Novarys was designed as a continuation of the Clowryys ecosystem.
+
+Together, both projects form a minimal toolchain for the OVERTURE architecture:
+
+- **Clowryys** → assembler
+- **Novarys** → emulator/runtime
+
+---
+
+## Current Limitations
+
+- Terminal interface remains minimal
+- Limited input/output capabilities
+- No advanced debugging UI
+- Execution performance not yet optimized
+- Architecture support intentionally constrained to OVERTURE
+
+---
+
+## Future Improvements
+
+Planned improvements include:
+
+- Better terminal rendering and readability
+- Improved input/output handling
+- Enhanced debugging and inspection tools
+- Better execution ergonomics
+- Performance optimizations
+- More user-friendly execution workflow
+
+---
+
+## What This Project Demonstrates
+
+This project highlights practical experience with:
+
+- Systems programming in Rust
+- Emulator and CPU architecture design
+- Binary execution and instruction decoding
+- Register and memory management
+- Machine state visualization
+- Debugging low-level systems
+- Structuring and maintaining a solo technical project
+
+It also reflects a strong interest in computer architecture, runtime systems, and low-level software engineering.
+
+---
+
+## Related Project
+
+- [**Clowryys**](https://github.com/lasere77/clowryys) — custom assembler for the OVERTURE architecture
+
+---
+
+## AI Assistance
+
+Parts of this README were refined with the help of AI tools to improve clarity, structure, and overall presentation.
+
+All technical content, design decisions, and implementation details are original and reflect the author's work.
