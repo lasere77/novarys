@@ -1,4 +1,3 @@
-
 #[repr(C)]
 enum RegsId {
     A,
@@ -20,16 +19,15 @@ pub union Byte {
 }
 
 pub struct Cpu {
-    pub nv:     u8,
-    pub regs:   [Byte; RegsId::NbReg as usize],
+    pub nv: u8,
+    pub regs: [Byte; RegsId::NbReg as usize],
 }
 
 impl Cpu {
-    pub fn init() -> Self
-    {
-        Self { 
+    pub fn init() -> Self {
+        Self {
             nv: (0),
-            regs: ([Byte {i_byte: 0}; RegsId::NbReg as usize])
+            regs: ([Byte { i_byte: 0 }; RegsId::NbReg as usize]),
         }
     }
 
@@ -48,7 +46,7 @@ impl Cpu {
         println!("----\n");
     }
 
-    pub fn  im(&mut self, value: u8) {
+    pub fn im(&mut self, value: u8) {
         println!("mode: im");
         self.regs[RegsId::A as usize].u_byte = value;
     }
@@ -71,11 +69,10 @@ impl Cpu {
         println!("mode: copy");
         let input = instruction & 0b00111000;
         let output = instruction & 0b00000111;
-        if output == 0b00000110
-        {
+        if output == 0b00000110 {
             self.regs[RegsId::RegOut as usize] = self.regs[input as usize];
         } else {
-            self.regs[output as usize] = self.regs[input as usize];        
+            self.regs[output as usize] = self.regs[input as usize];
         }
     }
 
@@ -97,7 +94,7 @@ impl Cpu {
         if need_jump {
             unsafe {
                 println!("jump at: {}", self.regs[RegsId::A as usize].u_byte - 1);
-                self.nv =  self.regs[RegsId::A as usize].u_byte - 1;
+                self.nv = self.regs[RegsId::A as usize].u_byte - 1;
             }
         }
     }
