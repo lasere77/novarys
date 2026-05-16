@@ -1,6 +1,6 @@
 #[repr(C)]
 enum RegsId {
-    A,
+    A = 0,
     C,
     D,
     R,
@@ -11,11 +11,21 @@ enum RegsId {
     NbReg,
 }
 
-#[repr(C)]
 #[derive(Clone, Copy)]
-pub union Byte {
-    i_byte: i8,
-    u_byte: u8,
+pub struct Byte(pub u8);
+
+impl Byte {
+    pub fn sign(self) -> i8 {
+        self.0 as i8
+    }
+
+    pub fn unsign(self) -> u8 {
+        self.0
+    }
+
+    pub fn set(&mut self, value: u8) {
+        self.0 = value;
+    }
 }
 
 pub struct Cpu {
@@ -27,40 +37,64 @@ impl Cpu {
     pub fn init() -> Self {
         Self {
             nv: (0),
-            regs: ([Byte { i_byte: 0 }; RegsId::NbReg as usize]),
+            regs: ([Byte(0); RegsId::NbReg as usize]),
         }
     }
 
     pub fn info(&self) {
         println!("tick: {}\n----", self.nv);
-        unsafe {
-            println!("IN {}", self.regs[RegsId::RegIn as usize].i_byte);
-            println!("reg A {}", self.regs[RegsId::A as usize].i_byte);
-            println!("reg C {}", self.regs[RegsId::C as usize].i_byte);
-            println!("reg D {}", self.regs[RegsId::D as usize].i_byte);
-            println!("reg R {}", self.regs[RegsId::R as usize].i_byte);
-            println!("reg F {}", self.regs[RegsId::F as usize].i_byte);
-            println!("reg X {}", self.regs[RegsId::X as usize].i_byte);
-            println!("OUT {}", self.regs[RegsId::RegOut as usize].i_byte);
-        }
+        println!("IN {}", self.regs[RegsId::RegIn as usize].sign());
+        println!("reg A {}", self.regs[RegsId::A as usize].sign());
+        println!("reg C {}", self.regs[RegsId::C as usize].sign());
+        println!("reg D {}", self.regs[RegsId::D as usize].sign());
+        println!("reg R {}", self.regs[RegsId::R as usize].sign());
+        println!("reg F {}", self.regs[RegsId::F as usize].sign());
+        println!("reg X {}", self.regs[RegsId::X as usize].sign());
+        println!("OUT {}", self.regs[RegsId::RegOut as usize].sign());
         println!("----\n");
     }
 
     pub fn im(&mut self, value: u8) {
         println!("mode: im");
-        self.regs[RegsId::A as usize].u_byte = value;
+        self.regs[RegsId::A as usize].set(value);
     }
 
     pub fn alu(&mut self, instruction: u8) {
         println!("mode: alu");
         let logic_gate = instruction & 0b00000111;
         match logic_gate {
-            0 => self.regs[RegsId::R as usize].i_byte = unsafe {self.regs[RegsId::C as usize].i_byte | self.regs[RegsId::D as usize].i_byte},
-            1 => self.regs[RegsId::R as usize].i_byte = unsafe {!(self.regs[RegsId::C as usize].i_byte & self.regs[RegsId::D as usize].i_byte)},
-            2 => self.regs[RegsId::R as usize].i_byte = unsafe {!(self.regs[RegsId::C as usize].i_byte | self.regs[RegsId::D as usize].i_byte)},
-            3 => self.regs[RegsId::R as usize].i_byte = unsafe {self.regs[RegsId::C as usize].i_byte & self.regs[RegsId::D as usize].i_byte},
-            4 => self.regs[RegsId::R as usize].i_byte = unsafe {self.regs[RegsId::C as usize].i_byte + self.regs[RegsId::D as usize].i_byte},
-            5 => self.regs[RegsId::R as usize].i_byte = unsafe {self.regs[RegsId::C as usize].i_byte - self.regs[RegsId::D as usize].i_byte},
+            0 => {
+                self.regs[RegsId::R as usize].set(
+                    self.regs[RegsId::C as usize].unsign() | self.regs[RegsId::D as usize].unsign(),
+                );
+            }
+            1 => {
+                self.regs[RegsId::R as usize].set(
+                    !(self.regs[RegsId::C as usize].unsign()
+                        & self.regs[RegsId::D as usize].unsign()),
+                );
+            }
+            2 => {
+                self.regs[RegsId::R as usize].set(
+                    !(self.regs[RegsId::C as usize].unsign()
+                        | self.regs[RegsId::D as usize].unsign()),
+                );
+            }
+            3 => {
+                self.regs[RegsId::R as usize].set(
+                    self.regs[RegsId::C as usize].unsign() & self.regs[RegsId::D as usize].unsign(),
+                );
+            }
+            4 => {
+                self.regs[RegsId::R as usize].set(
+                    self.regs[RegsId::C as usize].unsign() + self.regs[RegsId::D as usize].unsign(),
+                );
+            }
+            5 => {
+                self.regs[RegsId::R as usize].set(
+                    self.regs[RegsId::C as usize].unsign() - self.regs[RegsId::D as usize].unsign(),
+                );
+            }
             _ => todo!(),
         }
     }
@@ -82,20 +116,18 @@ impl Cpu {
         let need_jump: bool;
         match condition {
             0 => need_jump = false,
-            1 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte == 0 },
-            2 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte < 0 },
-            3 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte <= 0 },
+            1 => need_jump = self.regs[RegsId::R as usize].sign() == 0,
+            2 => need_jump = self.regs[RegsId::R as usize].sign() < 0,
+            3 => need_jump = self.regs[RegsId::R as usize].sign() <= 0,
             4 => need_jump = true,
-            5 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte != 0 },
-            6 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte >= 0 },
-            7 => need_jump = unsafe { self.regs[RegsId::R as usize].i_byte > 0 },
+            5 => need_jump = self.regs[RegsId::R as usize].sign() != 0,
+            6 => need_jump = self.regs[RegsId::R as usize].sign() >= 0,
+            7 => need_jump = self.regs[RegsId::R as usize].sign() > 0,
             _ => todo!(),
         }
         if need_jump {
-            unsafe {
-                println!("jump at: {}", self.regs[RegsId::A as usize].u_byte - 1);
-                self.nv = self.regs[RegsId::A as usize].u_byte - 1;
-            }
+            println!("jump at: {}", self.regs[RegsId::A as usize].unsign() - 1);
+            self.nv = self.regs[RegsId::A as usize].unsign() - 1;
         }
     }
 }
