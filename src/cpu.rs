@@ -43,19 +43,20 @@ impl Cpu {
 
     pub fn info(&self) {
         println!("tick: {}\n----", self.nv);
-        println!("IN {}", self.regs[RegsId::RegIn as usize].sign());
-        println!("reg A {}", self.regs[RegsId::A as usize].sign());
-        println!("reg C {}", self.regs[RegsId::C as usize].sign());
-        println!("reg D {}", self.regs[RegsId::D as usize].sign());
-        println!("reg R {}", self.regs[RegsId::R as usize].sign());
-        println!("reg F {}", self.regs[RegsId::F as usize].sign());
-        println!("reg X {}", self.regs[RegsId::X as usize].sign());
-        println!("OUT {}", self.regs[RegsId::RegOut as usize].sign());
+        println!("IN: {}", self.regs[RegsId::RegIn as usize].sign());
+        println!("reg A: {}", self.regs[RegsId::A as usize].sign());
+        println!("reg C: {}", self.regs[RegsId::C as usize].sign());
+        println!("reg D: {}", self.regs[RegsId::D as usize].sign());
+        println!("reg R: {}", self.regs[RegsId::R as usize].sign());
+        println!("reg F: {}", self.regs[RegsId::F as usize].sign());
+        println!("reg X: {}", self.regs[RegsId::X as usize].sign());
+        println!("OUT: {}", self.regs[RegsId::RegOut as usize].sign());
         println!("----\n");
     }
 
     pub fn im(&mut self, value: u8) {
         println!("mode: im");
+        println!("value: {}", value);
         self.regs[RegsId::A as usize].set(value);
     }
 
@@ -64,35 +65,45 @@ impl Cpu {
         let logic_gate = instruction & 0b00000111;
         match logic_gate {
             0 => {
+                println!("OR");
                 self.regs[RegsId::R as usize].set(
                     self.regs[RegsId::C as usize].unsign() | self.regs[RegsId::D as usize].unsign(),
                 );
             }
             1 => {
+                println!("NAND");
                 self.regs[RegsId::R as usize].set(
                     !(self.regs[RegsId::C as usize].unsign()
                         & self.regs[RegsId::D as usize].unsign()),
                 );
             }
             2 => {
+                println!("NOR");
                 self.regs[RegsId::R as usize].set(
                     !(self.regs[RegsId::C as usize].unsign()
                         | self.regs[RegsId::D as usize].unsign()),
                 );
             }
             3 => {
+                println!("AND");
                 self.regs[RegsId::R as usize].set(
                     self.regs[RegsId::C as usize].unsign() & self.regs[RegsId::D as usize].unsign(),
                 );
             }
             4 => {
+                println!("ADD");
                 self.regs[RegsId::R as usize].set(
-                    self.regs[RegsId::C as usize].unsign() + self.regs[RegsId::D as usize].unsign(),
+                    self.regs[RegsId::C as usize]
+                        .unsign()
+                        .wrapping_add(self.regs[RegsId::D as usize].unsign()),
                 );
             }
             5 => {
+                println!("SUB");
                 self.regs[RegsId::R as usize].set(
-                    self.regs[RegsId::C as usize].unsign() - self.regs[RegsId::D as usize].unsign(),
+                    self.regs[RegsId::C as usize]
+                        .unsign()
+                        .wrapping_sub(self.regs[RegsId::D as usize].unsign()),
                 );
             }
             _ => todo!(),
