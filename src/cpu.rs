@@ -112,7 +112,7 @@ impl Cpu {
 
     pub fn copy(&mut self, instruction: u8) {
         println!("mode: copy");
-        let input = instruction & 0b00111000;
+        let input = (instruction & 0b00111000) >> 3;
         let output = instruction & 0b00000111;
         if output == 0b00000110 {
             self.regs[RegsId::RegOut as usize] = self.regs[input as usize];
